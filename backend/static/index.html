@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>🏁 Ranking Mensual Strava</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        table { border-collapse: collapse; width: 60%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>🏁 Ranking Mensual Strava</h1>
+    <p id="status">Cargando ranking...</p>
+    <table id="ranking" style="display:none;">
+        <thead>
+            <tr>
+                <th>Posición</th>
+                <th>Atleta</th>
+                <th>Distancia (km)</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        // Usamos ruta relativa para evitar problemas de CORS
+        fetch('/api/ranking')
+        .then(response => response.json())
+        .then(data => {
+            const table = document.getElementById('ranking');
+            const tbody = table.querySelector('tbody');
+
+            if (data.ranking && data.ranking.length > 0) {
+                data.ranking.forEach((athlete, index) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${athlete.athlete}</td>
+                        <td>${athlete.distance_km.toFixed(1)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                table.style.display = '';
+                document.getElementById('status').style.display = 'none';
+            } else {
+                document.getElementById('status').textContent = 'No hay datos de ranking disponibles 😢';
+            }
+        })
+        .catch(err => {
+            document.getElementById('status').textContent = 'Error al cargar el ranking 😢';
+            console.error(err);
+        });
+    </script>
+</body>
+</html>

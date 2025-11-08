@@ -1,0 +1,37 @@
+{
+  "last_update": "2025-11-07 21:06:00 UTC",
+  "ranking": [
+    {
+      "athlete": "Jose",
+      "distance_km": 410.5
+    },
+    {
+      "athlete": "Manuel",
+      "distance_km": 201.3
+    },
+    {
+      "athlete": "Emilio",
+      "distance_km": 147.4
+    },
+    {
+      "athlete": "\u00c1ngel",
+      "distance_km": 143.2
+    },
+    {
+      "athlete": "Javier Fernan",
+      "distance_km": 84.8
+    },
+    {
+      "athlete": "Francisco Javier",
+      "distance_km": 63.8
+    },
+    {
+      "athlete": "Antonio",
+      "distance_km": 42.0
+    },
+    {
+      "athlete": "Juan Antonio",
+      "distance_km": 37.3
+    }
+  ]
+}

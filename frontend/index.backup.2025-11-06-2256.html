@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>🏁 Ranking Mensual Strava</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg, #e0f7fa, #fce4ec); color: #333; margin: 0; padding: 20px; }
+    h1 { text-align: center; color: #2c3e50; margin-bottom: 10px; }
+    #status { text-align: center; margin-top: 20px; font-size: 1.2em; }
+    table { border-collapse: collapse; width: 90%; max-width: 800px; margin: 20px auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+    th, td { padding: 14px; text-align: left; font-size: 1em; }
+    th { background-color: #3498db; color: #fff; font-size: 1.1em; }
+    tr:nth-child(even) { background-color: #f0f3f7; }
+    tr:first-child { font-weight: bold; background-color: #f1c40f; }
+    .medalla { font-size: 1.5em; margin-right: 6px; }
+    canvas { max-width: 90%; margin: 40px auto; display: block; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+</style>
+</head>
+<body>
+<h1>🏁 Ranking Mensual Strava</h1>
+<p id="status">Cargando ranking...</p>
+
+<table id="ranking" style="display:none;">
+    <thead>
+        <tr>
+            <th>Posición</th>
+            <th>Atleta</th>
+            <th>Distancia (km)</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<canvas id="rankingChart" style="display:none;"></canvas>
+
+<!-- ✅ SDK y lógica Farcaster -->
+<script type="module">
+import { FrameSDK } from "https://cdn.jsdelivr.net/npm/@farcaster/frame-sdk/dist/browser.umd.js";
+
+(async () => {
+    let sdk = null;
+    try {
+        if (window.parent !== window) {
+            console.log("🟣 Detectado entorno Farcaster Frame");
+            sdk = await FrameSDK.init();
+            console.log("✅ FrameSDK inicializado correctamente");
+            sdk.actions.ready();
+            console.log("🚀 Farcaster MiniApp lista (ready enviado)");
+        } else {
+            console.log("🌐 Navegador normal (sin Farcaster)");
+        }
+    } catch (err) {
+        console.error("❌ Error inicializando Farcaster SDK:", err);
+        document.getElementById("status").textContent = "Error al conectar con Farcaster 😢";
+    }
+
+    // 📊 Función para cargar el ranking desde el backend
+    async function cargarRanking() {
+        try {
+            const response = await fetch('/api/ranking');
+            const data = await response.json();
+            const table = document.getElementById('ranking');
+            const tbody = table.querySelector('tbody');
+
+            if (data.ranking && data.ranking.length > 0) {
+                tbody.innerHTML = '';
+                const colores = ['#FFD700','#C0C0C0','#CD7F32','#3498db','#2980b9','#1abc9c','#16a085'];
+
+                data.ranking.forEach((athlete, index) => {
+                    const tr = document.createElement('tr');
+                    const medallas = ['🥇','🥈','🥉'];
+                    tr.innerHTML = `
+                        <td><span class="medalla">${medallas[index] || ''}</span>${index + 1}</td>
+                        <td>${athlete.athlete}</td>
+                        <td>${athlete.distance_km.toFixed(1)}</td>`;
+                    tbody.appendChild(tr);
+                });
+
+                table.style.display = '';
+                document.getElementById('status').style.display = 'none';
+
+                const ctx = document.getElementById('rankingChart').getContext('2d');
+                document.getElementById('rankingChart').style.display = '';
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.ranking.map(a => a.athlete),
+                        datasets: [{
+                            label: 'Kilómetros',
+                            data: data.ranking.map(a => a.distance_km),
+                            backgroundColor: data.ranking.map((_, i) => colores[i] || '#3498db')
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        animation: { duration: 1500, easing: 'easeOutBounce' },
+                        plugins: {
+                            legend: { display: false },
+                            title: { display: true, text: 'Ranking Mensual - Distancia Recorrida', font: { size: 18 } }
+                        },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            } else {
+                document.getElementById('status').textContent = 'No hay datos de ranking disponibles 😢';
+            }
+        } catch (err) {
+            document.getElementById('status').textContent = 'Error al cargar el ranking 😢';
+            console.error(err);
+        }
+    }
+
+    cargarRanking();
+})();
+</script>
+
+</body>
+</html>
